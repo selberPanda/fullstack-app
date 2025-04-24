@@ -18,7 +18,7 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 
-const axios_url = "http://localhost:3000";
+const axios_url = import.meta.env.VITE_API_URL;
 
 const formSchema = z.object({
   username: z

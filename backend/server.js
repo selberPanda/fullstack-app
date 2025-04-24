@@ -1,16 +1,18 @@
 import express from "express"
 import cors from "cors"
 import { MongoClient } from "mongodb"
+import dotenv from "dotenv"
+dotenv.config()
 
 const app = express()
-const port = 3000
+const port = 5000
 
-const url = 'mongodb://localhost:27017';
+const url = process.env.MONGO_URI
 const client = new MongoClient(url);
 const dbName = "game"
 
 const corsOptions = {
-  origin: ["http://localhost:5173"]
+  origin: [process.env.APP_ORIGIN]
 }
 app.use(cors(corsOptions))
 app.use(express.json())
@@ -20,6 +22,15 @@ async function main() {
   console.log("Connected to Database")
   const db = client.db(dbName)
   const collection = db.collection("users")
+
+  app.get("/", async (req, res) => {
+    try {
+      res.status(200)
+    } catch(e) {
+      res.status(500).json({ success:false })
+      console.error(e)
+    }
+  })
 
   app.post("/login", async (req, res) => {
     try {
@@ -58,9 +69,7 @@ async function main() {
 }
 
 app.listen(port, () => {
-  console.log(`Server listening on:
-    http://localhost:${port}/
-    http://localhost:${port}/users\n`)
+  console.log(`Server listening on http://localhost:${port}/api/`)
 })
 
 main()

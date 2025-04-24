@@ -1,0 +1,63 @@
+name: fullstack-app
+
+services:
+  mongo:
+    image: mongo:8.0.4
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - fullstack-app
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: ./backend/.env
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - fullstack-app
+    depends_on:
+      - mongo
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: ./client/.env
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    networks:
+      - fullstack-app
+    command: npm run dev -- --host
+    depends_on:
+      - api
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - fullstack-app
+    depends_on:
+      - api
+      - client
+
+volumes:
+  mongo_data:
+  caddy_data:
+  caddy_config:
+networks:
+  fullstack-app:
+    driver: bridge
